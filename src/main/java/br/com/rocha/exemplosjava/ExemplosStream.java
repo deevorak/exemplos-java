@@ -1,7 +1,9 @@
 package br.com.rocha.exemplosjava;
 
 import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import br.com.rocha.exemplosjava.model.Catalogo;
@@ -29,11 +31,29 @@ public class ExemplosStream {
 		.forEach(System.out::println);
 
 	System.out.println("** Criando Catálogo de filmes por genero, ordenando da nota mais alta para mais baixa:");
-	filmes.stream().map(f -> f.genero()).distinct()
+	List<Catalogo> catalogos =  filmes.stream().map(f -> f.genero()).distinct()
 		.map(g -> new Catalogo(g,
 			filmes.stream().filter(fm -> fm.genero().equals(g))
 				.sorted(Comparator.comparing(Filme::nota).reversed()).collect(Collectors.toList())))
-		.forEach(System.out::println);
+				.collect(Collectors.toList());
+		
+	catalogos.forEach(System.out::println);
+	
+	// Média de nota de dos filmes por genero
+	Map<String, Double> mediaNotaFilmePorGenero = catalogos.stream()
+		.flatMap(c -> c.filmes().stream())
+			.collect(
+				Collectors.groupingBy(Filme::genero, Collectors.averagingDouble(Filme::nota))
+			);
+	
+	System.out.println(mediaNotaFilmePorGenero);
+	
+	// DoubleSummaryStatistics
+	DoubleSummaryStatistics estatisticasFilmes = filmes.stream().collect(Collectors.summarizingDouble(Filme::nota));
+	System.out.println("Maior nota = " + estatisticasFilmes.getMax());
+	System.out.println("Menor nota = " + estatisticasFilmes.getMin());
+	System.out.println("Média notas = " + estatisticasFilmes.getAverage());
+	System.out.println("Total notas computadas = " + estatisticasFilmes.getCount());
 
     }
 
